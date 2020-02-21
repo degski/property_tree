@@ -52,7 +52,7 @@
 
 #include <plf/plf_nanotimer.h>
 
-#include "const_expr_string.hpp"
+#include "detail/const_expr_string.hpp"
 
 // Disk-files and JSON -----------------------------------------------------------------------------------------------------------//
 

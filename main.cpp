@@ -58,14 +58,18 @@ struct command commands[] = { COMMAND ( quit ), COMMAND ( help ) };
     };
 */
 
-PROPERTY ( arch, x64, x86, arm )
-PROPERTY ( conf, debug, release )
-PROPERTY ( lang, latest, cpp20, cpp17, cpp14, cpp11, cpp03, cpp98, c11, c99, c89 )
-PROPERTY ( comp, cl, clang )
+// clang-format off
+PROPERTY ( architecture, x64, x86, arm )
+PROPERTY ( configuration, debug, release )
+PROPERTY ( language, latest, cpp20, cpp17, cpp14, cpp11, cpp03, cpp98, c11, c99, c89 )
+PROPERTY ( compiler, clang, cl )
+PROPERTY ( linker, lld_link, link )
+PROPERTY ( librarian, llvm_lib, lib )
+// clang-format on
 
 int main ( ) {
 
-    property_arch p;
+    property_architecture p;
 
     p.value = 2;
 
