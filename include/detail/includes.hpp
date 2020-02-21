@@ -31,28 +31,19 @@
 #include <array>
 #include <filesystem>
 #include <fstream>
-#include <initializer_list>
-#include <optional>
-#include <random>
+#include <iostream>
 #include <string>
-#include <string_view>
-#include <tuple>
 #include <type_traits>
-#include <vector>
 
 #define FMT_USE_GRISU 1
 #include <fmt/core.h>
 #include <fmt/format.h>
-
-#include <sax/iostream.hpp>
 
 #include <boost/preprocessor/iteration/local.hpp>
 
 #include <sax/utf8conv.hpp>
 
 #include <plf/plf_nanotimer.h>
-
-#include "const_expr_string.hpp"
 
 // Disk-files and JSON -----------------------------------------------------------------------------------------------------------//
 
@@ -158,9 +149,14 @@ inline void from_json ( json const & j_, place_t & p_ ) {
 
 //--------------------------------------------------------------------------------------------------------------------------------//
 
-using atom = char const *;
+#include "const_expr_string.hpp"
 
-#define ATOMIZE( x ) ( atom ) #x
+using atom = erichkeane::const_expr_string<char>;
+
+#define ATOMIZE( x )                                                                                                               \
+    atom { #x }
+
+//--------------------------------------------------------------------------------------------------------------------------------//
 
 // add quotes.
 #define QUOTE_PARAM( x ) ATOMIZE ( x )

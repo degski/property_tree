@@ -28,7 +28,7 @@ void link_command ( ) {}
 void lib_command ( ) {}
 
 struct command {
-    char const * name;
+    atom name;
     void ( *function ) ( void );
 };
 
@@ -45,7 +45,7 @@ struct command commands[] = { COMMAND ( compile ), COMMAND ( link ), COMMAND ( l
         static constexpr atom name                                      = QUOTE_PARAM ( property_name );                           \
         static constexpr std::array<atom, NARGS ( __VA_ARGS__ )> option = { QUOTE_PARAMS ( __VA_ARGS__ ) };                        \
         int value                                                       = 0;                                                       \
-        [[nodiscard]] std::string_view get ( ) noexcept { return option[ value ]; }                                                \
+        [[nodiscard]] atom get ( ) noexcept { return option[ value ]; }                                                            \
     };
 
 /*
