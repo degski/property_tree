@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "includes.hpp"
+#include "detail/includes.hpp"
 
 void compile_command ( ) {}
 void link_command ( ) {}
@@ -69,13 +69,49 @@ PROPERTY ( librarian, llvm_lib, lib )
 PROPERTY ( warnings, w3, w0, w1, w2, w3, w4 )
 // clang-format on
 
+/*
+    We are given 10 individuals say,
+    0, 1, 3, 3, 4, 5, 6, 7, 8, 9
+    a, b, c, d, e, f, g, h, i, j
+
+    Following are relationships to be added.
+    a <-> b
+    b <-> d
+    c <-> f
+    c <-> i
+    j <-> e
+    g <-> j
+
+    And given queries like whether a is a friend of d or not.
+    We basically need to create following 4 groups
+    and maintain a quickly accessible connection
+    among group items:
+    G1 = {a, b, d}
+    G2 = {c, f, i}
+    G3 = {e, g, j}
+    G4 = {h}
+*/
+
 int main ( ) {
+
+    disjoint_set<int, 10> s;
+
+    s.unite ( 0, 1 );
+    s.unite ( 1, 3 );
+    s.unite ( 2, 5 );
+    s.unite ( 3, 8 );
+    s.unite ( 9, 4 );
+    s.unite ( 6, 9 );
+
+    std::cout << s.find ( 4 ) << '\n';
+
+    exit ( 0 );
 
     property_architecture p;
 
     p.value = 2;
 
-    std::cout << p.get ( ) << nl;
+    std::cout << p.get ( ) << '\n';
 
     return EXIT_SUCCESS;
 }

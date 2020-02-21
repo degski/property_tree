@@ -268,3 +268,59 @@ using atom = erichkeane::const_expr_string<char>;
     const char * fruit_names[] = { FRUITS ( CREATE_STRINGS ) };
 
 */
+
+template<class ForwardIt, class T>
+constexpr void iota ( ForwardIt first_, ForwardIt last_, T value_ = 0 ) noexcept {
+    while ( first_ != last_ )
+        *first_++ = value_++;
+}
+
+// C++ implementation of disjoint set
+template<typename SizeType, SizeType N>
+struct alignas ( 64 ) disjoint_set {
+
+    using size_type = SizeType;
+    using container = std::array<size_type, N>;
+
+    static constexpr size_type n = N;
+
+    private:
+    container rank, parent;
+
+    public:
+    constexpr disjoint_set ( ) noexcept {
+        std::fill ( rank.begin ( ), rank.end ( ), 0 );
+        iota<typename container::iterator, size_type> ( parent.begin ( ), parent.end ( ) );
+    }
+
+    public:
+    constexpr size_type find ( size_type x ) noexcept {
+        if ( parent[ i ] == i ) {
+            return i;
+        }
+        else {
+            size_type result = find ( parent[ i ] );
+            set.parent[ i ]  = result;
+            return result;
+        }
+    }
+
+    // Do union of two sets represented by x and y.
+    constexpr void unite ( size_type x, size_type y ) noexcept {
+        // Find the representatives (or the root nodes) for the set that includes i.
+        size_type irep = find ( i ), jrep = find ( j );
+        if ( irep == jrep )
+            return;
+        size_type irank = rank[ irep ], jrank = rank[ jrep ];
+        if ( irank < jrank ) {
+            parent[ irep ] = jrep;
+        }
+        else if ( jrank < irank ) {
+            parent[ jrep ] = irep;
+        }
+        else {
+            parent[ irep ] = jrep;
+            rank[ jrep ]++;
+        }
+    }
+};
