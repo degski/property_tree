@@ -23,8 +23,9 @@
 
 #include "includes.hpp"
 
-void quit_command ( ) {}
-void help_command ( ) {}
+void compile_command ( ) {}
+void link_command ( ) {}
+void lib_command ( ) {}
 
 struct command {
     char const * name;
@@ -34,7 +35,7 @@ struct command {
 #define COMMAND( NAME )                                                                                                            \
     command { #NAME, NAME##_command }
 
-struct command commands[] = { COMMAND ( quit ), COMMAND ( help ) };
+struct command commands[] = { COMMAND ( compile ), COMMAND ( link ), COMMAND ( lib ) };
 
 //
 
@@ -62,9 +63,10 @@ struct command commands[] = { COMMAND ( quit ), COMMAND ( help ) };
 PROPERTY ( architecture, x64, x86, arm )
 PROPERTY ( configuration, debug, release )
 PROPERTY ( language, latest, cpp20, cpp17, cpp14, cpp11, cpp03, cpp98, c11, c99, c89 )
-PROPERTY ( compiler, clang, cl )
+PROPERTY ( compiler, clang_cl, cl )
 PROPERTY ( linker, lld_link, link )
 PROPERTY ( librarian, llvm_lib, lib )
+PROPERTY ( warnings, w3, w0, w1, w2, w3, w4 )
 // clang-format on
 
 int main ( ) {
