@@ -96,7 +96,7 @@ PROPERTY ( warnings, w3, w0, w1, w2, w3, w4 )
 
 int main ( ) {
 
-    disjoint_set<int, 10> s;
+    sax::disjoint_set<int, 10> s;
 
     s.unite ( 1, 3 );
     s.unite ( 2, 5 );
