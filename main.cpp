@@ -71,16 +71,18 @@ PROPERTY ( warnings, w3, w0, w1, w2, w3, w4 )
 
 /*
     We are given 10 individuals say,
-    0, 1, 3, 3, 4, 5, 6, 7, 8, 9
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9
     a, b, c, d, e, f, g, h, i, j
 
     Following are relationships to be added.
-    a <-> b
     b <-> d
     c <-> f
-    c <-> i
-    j <-> e
     g <-> j
+    a <-> b
+    c <-> i
+    e <-> j
+
+
 
     And given queries like whether a is a friend of d or not.
     We basically need to create following 4 groups
@@ -96,14 +98,16 @@ int main ( ) {
 
     disjoint_set<int, 10> s;
 
-    s.unite ( 0, 1 );
     s.unite ( 1, 3 );
     s.unite ( 2, 5 );
-    s.unite ( 3, 8 );
-    s.unite ( 9, 4 );
     s.unite ( 6, 9 );
+    s.unite ( 0, 1 );
+    s.unite ( 2, 8 );
+    s.unite ( 4, 9 );
 
-    std::cout << s.find ( 4 ) << '\n';
+    for ( int i = 0; i < 10; ++i )
+        std::cout << s.find ( i ) << '\n';
+    std::cout << '\n';
 
     exit ( 0 );
 

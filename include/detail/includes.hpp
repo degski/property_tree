@@ -153,13 +153,13 @@ inline void from_json ( json const & j_, place_t & p_ ) {
 
 using atom = erichkeane::const_expr_string<char>;
 
-#define ATOMIZE( x )                                                                                                               \
-    atom { #x }
+#define ATOMIZE( x_ )                                                                                                              \
+    atom { #x_ }
 
 //--------------------------------------------------------------------------------------------------------------------------------//
 
 // add quotes.
-#define QUOTE_PARAM( x ) ATOMIZE ( x )
+#define QUOTE_PARAM( x_ ) ATOMIZE ( x_ )
 // trick to get the number of arguments passed to a macro.
 #define NARGS_( _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24,     \
                 _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _51, _52, _53, _54, _55, _56, _57, \
@@ -171,75 +171,75 @@ using atom = erichkeane::const_expr_string<char>;
 // makes easier to expand the expressions.
 #define EXPAND( ... ) __VA_ARGS__
 // clang-format off
-#define CONCAT_IMPL( x, y ) EXPAND ( x ## y )
+#define CONCAT_IMPL( x_, y_ ) EXPAND ( x_ ## y_ )
 // clang-format on
 // concatenate two tokens.
-#define CONCAT( x, y ) CONCAT_IMPL ( x, y )
+#define CONCAT( x_, y_ ) CONCAT_IMPL ( x_, y_ )
 // quote all.
-#define QUOTE1( x ) ATOMIZE ( x )
-#define QUOTE2( x, ... ) ATOMIZE ( x ), QUOTE1 ( __VA_ARGS__ )
-#define QUOTE3( x, ... ) ATOMIZE ( x ), QUOTE2 ( __VA_ARGS__ )
-#define QUOTE4( x, ... ) ATOMIZE ( x ), QUOTE3 ( __VA_ARGS__ )
-#define QUOTE5( x, ... ) ATOMIZE ( x ), QUOTE4 ( __VA_ARGS__ )
-#define QUOTE6( x, ... ) ATOMIZE ( x ), QUOTE5 ( __VA_ARGS__ )
-#define QUOTE7( x, ... ) ATOMIZE ( x ), QUOTE6 ( __VA_ARGS__ )
-#define QUOTE8( x, ... ) ATOMIZE ( x ), QUOTE7 ( __VA_ARGS__ )
-#define QUOTE9( x, ... ) ATOMIZE ( x ), QUOTE8 ( __VA_ARGS__ )
-#define QUOTE10( x, ... ) ATOMIZE ( x ), QUOTE9 ( __VA_ARGS__ )
-#define QUOTE11( x, ... ) ATOMIZE ( x ), QUOTE10 ( __VA_ARGS__ )
-#define QUOTE12( x, ... ) ATOMIZE ( x ), QUOTE11 ( __VA_ARGS__ )
-#define QUOTE13( x, ... ) ATOMIZE ( x ), QUOTE12 ( __VA_ARGS__ )
-#define QUOTE14( x, ... ) ATOMIZE ( x ), QUOTE13 ( __VA_ARGS__ )
-#define QUOTE15( x, ... ) ATOMIZE ( x ), QUOTE14 ( __VA_ARGS__ )
-#define QUOTE16( x, ... ) ATOMIZE ( x ), QUOTE15 ( __VA_ARGS__ )
-#define QUOTE17( x, ... ) ATOMIZE ( x ), QUOTE16 ( __VA_ARGS__ )
-#define QUOTE18( x, ... ) ATOMIZE ( x ), QUOTE17 ( __VA_ARGS__ )
-#define QUOTE19( x, ... ) ATOMIZE ( x ), QUOTE18 ( __VA_ARGS__ )
-#define QUOTE20( x, ... ) ATOMIZE ( x ), QUOTE19 ( __VA_ARGS__ )
-#define QUOTE21( x, ... ) ATOMIZE ( x ), QUOTE20 ( __VA_ARGS__ )
-#define QUOTE22( x, ... ) ATOMIZE ( x ), QUOTE21 ( __VA_ARGS__ )
-#define QUOTE23( x, ... ) ATOMIZE ( x ), QUOTE22 ( __VA_ARGS__ )
-#define QUOTE24( x, ... ) ATOMIZE ( x ), QUOTE23 ( __VA_ARGS__ )
-#define QUOTE25( x, ... ) ATOMIZE ( x ), QUOTE24 ( __VA_ARGS__ )
-#define QUOTE26( x, ... ) ATOMIZE ( x ), QUOTE25 ( __VA_ARGS__ )
-#define QUOTE27( x, ... ) ATOMIZE ( x ), QUOTE26 ( __VA_ARGS__ )
-#define QUOTE28( x, ... ) ATOMIZE ( x ), QUOTE27 ( __VA_ARGS__ )
-#define QUOTE29( x, ... ) ATOMIZE ( x ), QUOTE28 ( __VA_ARGS__ )
-#define QUOTE30( x, ... ) ATOMIZE ( x ), QUOTE29 ( __VA_ARGS__ )
-#define QUOTE31( x, ... ) ATOMIZE ( x ), QUOTE30 ( __VA_ARGS__ )
-#define QUOTE32( x, ... ) ATOMIZE ( x ), QUOTE31 ( __VA_ARGS__ )
-#define QUOTE33( x, ... ) ATOMIZE ( x ), QUOTE32 ( __VA_ARGS__ )
-#define QUOTE34( x, ... ) ATOMIZE ( x ), QUOTE33 ( __VA_ARGS__ )
-#define QUOTE35( x, ... ) ATOMIZE ( x ), QUOTE34 ( __VA_ARGS__ )
-#define QUOTE36( x, ... ) ATOMIZE ( x ), QUOTE35 ( __VA_ARGS__ )
-#define QUOTE37( x, ... ) ATOMIZE ( x ), QUOTE36 ( __VA_ARGS__ )
-#define QUOTE38( x, ... ) ATOMIZE ( x ), QUOTE37 ( __VA_ARGS__ )
-#define QUOTE39( x, ... ) ATOMIZE ( x ), QUOTE38 ( __VA_ARGS__ )
-#define QUOTE40( x, ... ) ATOMIZE ( x ), QUOTE39 ( __VA_ARGS__ )
-#define QUOTE41( x, ... ) ATOMIZE ( x ), QUOTE40 ( __VA_ARGS__ )
-#define QUOTE42( x, ... ) ATOMIZE ( x ), QUOTE41 ( __VA_ARGS__ )
-#define QUOTE43( x, ... ) ATOMIZE ( x ), QUOTE42 ( __VA_ARGS__ )
-#define QUOTE44( x, ... ) ATOMIZE ( x ), QUOTE43 ( __VA_ARGS__ )
-#define QUOTE45( x, ... ) ATOMIZE ( x ), QUOTE44 ( __VA_ARGS__ )
-#define QUOTE46( x, ... ) ATOMIZE ( x ), QUOTE45 ( __VA_ARGS__ )
-#define QUOTE47( x, ... ) ATOMIZE ( x ), QUOTE46 ( __VA_ARGS__ )
-#define QUOTE48( x, ... ) ATOMIZE ( x ), QUOTE47 ( __VA_ARGS__ )
-#define QUOTE49( x, ... ) ATOMIZE ( x ), QUOTE48 ( __VA_ARGS__ )
-#define QUOTE50( x, ... ) ATOMIZE ( x ), QUOTE49 ( __VA_ARGS__ )
-#define QUOTE51( x, ... ) ATOMIZE ( x ), QUOTE50 ( __VA_ARGS__ )
-#define QUOTE52( x, ... ) ATOMIZE ( x ), QUOTE51 ( __VA_ARGS__ )
-#define QUOTE53( x, ... ) ATOMIZE ( x ), QUOTE52 ( __VA_ARGS__ )
-#define QUOTE54( x, ... ) ATOMIZE ( x ), QUOTE53 ( __VA_ARGS__ )
-#define QUOTE55( x, ... ) ATOMIZE ( x ), QUOTE54 ( __VA_ARGS__ )
-#define QUOTE56( x, ... ) ATOMIZE ( x ), QUOTE55 ( __VA_ARGS__ )
-#define QUOTE57( x, ... ) ATOMIZE ( x ), QUOTE56 ( __VA_ARGS__ )
-#define QUOTE58( x, ... ) ATOMIZE ( x ), QUOTE57 ( __VA_ARGS__ )
-#define QUOTE59( x, ... ) ATOMIZE ( x ), QUOTE58 ( __VA_ARGS__ )
-#define QUOTE60( x, ... ) ATOMIZE ( x ), QUOTE59 ( __VA_ARGS__ )
-#define QUOTE61( x, ... ) ATOMIZE ( x ), QUOTE60 ( __VA_ARGS__ )
-#define QUOTE62( x, ... ) ATOMIZE ( x ), QUOTE61 ( __VA_ARGS__ )
-#define QUOTE63( x, ... ) ATOMIZE ( x ), QUOTE62 ( __VA_ARGS__ )
-#define QUOTE64( x, ... ) ATOMIZE ( x ), QUOTE63 ( __VA_ARGS__ )
+#define QUOTE1( x_ ) ATOMIZE ( x_ )
+#define QUOTE2( x_, ... ) ATOMIZE ( x_ ), QUOTE1 ( __VA_ARGS__ )
+#define QUOTE3( x_, ... ) ATOMIZE ( x_ ), QUOTE2 ( __VA_ARGS__ )
+#define QUOTE4( x_, ... ) ATOMIZE ( x_ ), QUOTE3 ( __VA_ARGS__ )
+#define QUOTE5( x_, ... ) ATOMIZE ( x_ ), QUOTE4 ( __VA_ARGS__ )
+#define QUOTE6( x_, ... ) ATOMIZE ( x_ ), QUOTE5 ( __VA_ARGS__ )
+#define QUOTE7( x_, ... ) ATOMIZE ( x_ ), QUOTE6 ( __VA_ARGS__ )
+#define QUOTE8( x_, ... ) ATOMIZE ( x_ ), QUOTE7 ( __VA_ARGS__ )
+#define QUOTE9( x_, ... ) ATOMIZE ( x_ ), QUOTE8 ( __VA_ARGS__ )
+#define QUOTE10( x_, ... ) ATOMIZE ( x_ ), QUOTE9 ( __VA_ARGS__ )
+#define QUOTE11( x_, ... ) ATOMIZE ( x_ ), QUOTE10 ( __VA_ARGS__ )
+#define QUOTE12( x_, ... ) ATOMIZE ( x_ ), QUOTE11 ( __VA_ARGS__ )
+#define QUOTE13( x_, ... ) ATOMIZE ( x_ ), QUOTE12 ( __VA_ARGS__ )
+#define QUOTE14( x_, ... ) ATOMIZE ( x_ ), QUOTE13 ( __VA_ARGS__ )
+#define QUOTE15( x_, ... ) ATOMIZE ( x_ ), QUOTE14 ( __VA_ARGS__ )
+#define QUOTE16( x_, ... ) ATOMIZE ( x_ ), QUOTE15 ( __VA_ARGS__ )
+#define QUOTE17( x_, ... ) ATOMIZE ( x_ ), QUOTE16 ( __VA_ARGS__ )
+#define QUOTE18( x_, ... ) ATOMIZE ( x_ ), QUOTE17 ( __VA_ARGS__ )
+#define QUOTE19( x_, ... ) ATOMIZE ( x_ ), QUOTE18 ( __VA_ARGS__ )
+#define QUOTE20( x_, ... ) ATOMIZE ( x_ ), QUOTE19 ( __VA_ARGS__ )
+#define QUOTE21( x_, ... ) ATOMIZE ( x_ ), QUOTE20 ( __VA_ARGS__ )
+#define QUOTE22( x_, ... ) ATOMIZE ( x_ ), QUOTE21 ( __VA_ARGS__ )
+#define QUOTE23( x_, ... ) ATOMIZE ( x_ ), QUOTE22 ( __VA_ARGS__ )
+#define QUOTE24( x_, ... ) ATOMIZE ( x_ ), QUOTE23 ( __VA_ARGS__ )
+#define QUOTE25( x_, ... ) ATOMIZE ( x_ ), QUOTE24 ( __VA_ARGS__ )
+#define QUOTE26( x_, ... ) ATOMIZE ( x_ ), QUOTE25 ( __VA_ARGS__ )
+#define QUOTE27( x_, ... ) ATOMIZE ( x_ ), QUOTE26 ( __VA_ARGS__ )
+#define QUOTE28( x_, ... ) ATOMIZE ( x_ ), QUOTE27 ( __VA_ARGS__ )
+#define QUOTE29( x_, ... ) ATOMIZE ( x_ ), QUOTE28 ( __VA_ARGS__ )
+#define QUOTE30( x_, ... ) ATOMIZE ( x_ ), QUOTE29 ( __VA_ARGS__ )
+#define QUOTE31( x_, ... ) ATOMIZE ( x_ ), QUOTE30 ( __VA_ARGS__ )
+#define QUOTE32( x_, ... ) ATOMIZE ( x_ ), QUOTE31 ( __VA_ARGS__ )
+#define QUOTE33( x_, ... ) ATOMIZE ( x_ ), QUOTE32 ( __VA_ARGS__ )
+#define QUOTE34( x_, ... ) ATOMIZE ( x_ ), QUOTE33 ( __VA_ARGS__ )
+#define QUOTE35( x_, ... ) ATOMIZE ( x_ ), QUOTE34 ( __VA_ARGS__ )
+#define QUOTE36( x_, ... ) ATOMIZE ( x_ ), QUOTE35 ( __VA_ARGS__ )
+#define QUOTE37( x_, ... ) ATOMIZE ( x_ ), QUOTE36 ( __VA_ARGS__ )
+#define QUOTE38( x_, ... ) ATOMIZE ( x_ ), QUOTE37 ( __VA_ARGS__ )
+#define QUOTE39( x_, ... ) ATOMIZE ( x_ ), QUOTE38 ( __VA_ARGS__ )
+#define QUOTE40( x_, ... ) ATOMIZE ( x_ ), QUOTE39 ( __VA_ARGS__ )
+#define QUOTE41( x_, ... ) ATOMIZE ( x_ ), QUOTE40 ( __VA_ARGS__ )
+#define QUOTE42( x_, ... ) ATOMIZE ( x_ ), QUOTE41 ( __VA_ARGS__ )
+#define QUOTE43( x_, ... ) ATOMIZE ( x_ ), QUOTE42 ( __VA_ARGS__ )
+#define QUOTE44( x_, ... ) ATOMIZE ( x_ ), QUOTE43 ( __VA_ARGS__ )
+#define QUOTE45( x_, ... ) ATOMIZE ( x_ ), QUOTE44 ( __VA_ARGS__ )
+#define QUOTE46( x_, ... ) ATOMIZE ( x_ ), QUOTE45 ( __VA_ARGS__ )
+#define QUOTE47( x_, ... ) ATOMIZE ( x_ ), QUOTE46 ( __VA_ARGS__ )
+#define QUOTE48( x_, ... ) ATOMIZE ( x_ ), QUOTE47 ( __VA_ARGS__ )
+#define QUOTE49( x_, ... ) ATOMIZE ( x_ ), QUOTE48 ( __VA_ARGS__ )
+#define QUOTE50( x_, ... ) ATOMIZE ( x_ ), QUOTE49 ( __VA_ARGS__ )
+#define QUOTE51( x_, ... ) ATOMIZE ( x_ ), QUOTE50 ( __VA_ARGS__ )
+#define QUOTE52( x_, ... ) ATOMIZE ( x_ ), QUOTE51 ( __VA_ARGS__ )
+#define QUOTE53( x_, ... ) ATOMIZE ( x_ ), QUOTE52 ( __VA_ARGS__ )
+#define QUOTE54( x_, ... ) ATOMIZE ( x_ ), QUOTE53 ( __VA_ARGS__ )
+#define QUOTE55( x_, ... ) ATOMIZE ( x_ ), QUOTE54 ( __VA_ARGS__ )
+#define QUOTE56( x_, ... ) ATOMIZE ( x_ ), QUOTE55 ( __VA_ARGS__ )
+#define QUOTE57( x_, ... ) ATOMIZE ( x_ ), QUOTE56 ( __VA_ARGS__ )
+#define QUOTE58( x_, ... ) ATOMIZE ( x_ ), QUOTE57 ( __VA_ARGS__ )
+#define QUOTE59( x_, ... ) ATOMIZE ( x_ ), QUOTE58 ( __VA_ARGS__ )
+#define QUOTE60( x_, ... ) ATOMIZE ( x_ ), QUOTE59 ( __VA_ARGS__ )
+#define QUOTE61( x_, ... ) ATOMIZE ( x_ ), QUOTE60 ( __VA_ARGS__ )
+#define QUOTE62( x_, ... ) ATOMIZE ( x_ ), QUOTE61 ( __VA_ARGS__ )
+#define QUOTE63( x_, ... ) ATOMIZE ( x_ ), QUOTE62 ( __VA_ARGS__ )
+#define QUOTE64( x_, ... ) ATOMIZE ( x_ ), QUOTE63 ( __VA_ARGS__ )
 
 #define QUOTE_PARAMS( ... ) EXPAND ( CONCAT ( QUOTE, NARGS ( __VA_ARGS__ ) ) ) ( __VA_ARGS__ )
 
@@ -269,58 +269,81 @@ using atom = erichkeane::const_expr_string<char>;
 
 */
 
-template<class ForwardIt, class T>
-constexpr void iota ( ForwardIt first_, ForwardIt last_, T value_ = 0 ) noexcept {
-    while ( first_ != last_ )
-        *first_++ = value_++;
-}
+// MIT License
+//
+// Copyright (c) 2020 degski
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
-// C++ implementation of disjoint set
+#pragma once
+
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
+
+#include <array>
+
+namespace sax {
+
 template<typename SizeType, SizeType N>
 struct alignas ( 64 ) disjoint_set {
 
     using size_type = SizeType;
     using container = std::array<size_type, N>;
+    using iterator  = typename container::iterator;
 
     static constexpr size_type n = N;
 
-    private:
-    container rank, parent;
-
-    public:
-    constexpr disjoint_set ( ) noexcept {
-        std::fill ( rank.begin ( ), rank.end ( ), 0 );
-        iota<typename container::iterator, size_type> ( parent.begin ( ), parent.end ( ) );
+    constexpr size_type find ( size_type x_ ) noexcept {
+        if ( parent[ x_ ] == x_ )
+            return x_;
+        return parent[ x_ ] = find ( parent[ x_ ] );
     }
 
-    public:
-    constexpr size_type find ( size_type x ) noexcept {
-        if ( parent[ i ] == i ) {
-            return i;
-        }
-        else {
-            size_type result = find ( parent[ i ] );
-            set.parent[ i ]  = result;
-            return result;
-        }
-    }
-
-    // Do union of two sets represented by x and y.
-    constexpr void unite ( size_type x, size_type y ) noexcept {
-        // Find the representatives (or the root nodes) for the set that includes i.
-        size_type irep = find ( i ), jrep = find ( j );
+    constexpr void unite ( size_type x_, size_type y_ ) noexcept {
+        size_type irep = find ( x_ ), jrep = find ( y_ );
         if ( irep == jrep )
             return;
-        size_type irank = rank[ irep ], jrank = rank[ jrep ];
-        if ( irank < jrank ) {
-            parent[ irep ] = jrep;
-        }
-        else if ( jrank < irank ) {
-            parent[ jrep ] = irep;
-        }
-        else {
-            parent[ irep ] = jrep;
-            rank[ jrep ]++;
+        switch ( size_type irank = rank[ irep ], jrank = rank[ jrep ]; ( irank > jrank ) - ( irank < jrank ) ) {
+            case -1: parent[ irep ] = jrep; return;
+            case +0:
+                parent[ irep ] = jrep;
+                rank[ jrep ]++;
+                return;
+            case +1: parent[ jrep ] = irep; return;
         }
     }
+
+    private:
+    constexpr void iota ( iterator first_, iterator last_, size_type value_ = 0 ) noexcept {
+        while ( first_ != last_ )
+            *first_++ = value_++;
+    }
+
+    constexpr container make_parent ( ) noexcept {
+        container parent;
+        iota ( parent.begin ( ), parent.end ( ) );
+        return parent;
+    }
+
+    container rank = { }, parent = make_parent ( );
 };
+
+} // namespace sax
