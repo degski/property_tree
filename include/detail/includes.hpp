@@ -90,8 +90,8 @@ namespace detail {
 
 [[nodiscard]] fs::path data_path_impl ( std::string const & relative_path_ ) noexcept {
     wchar_t * value;
-    std::size_t len;
-    _wdupenv_s ( &value, &len, L"USERPROFILE" );
+    std::size_t _;
+    _wdupenv_s ( &value, &_, L"USERPROFILE" );
     fs::path return_value ( std::wstring ( value ) +
                             std::wstring ( L"\\AppData\\Roaming\\" + sax::utf8_to_utf16 ( relative_path_ ) ) );
     fs::create_directory ( return_value ); // no error raised, if directory exists.
@@ -246,26 +246,9 @@ using atom = erichkeane::const_expr_string<char>;
 
 //--------------------------------------------------------------------------------------------------------------------------------//
 
-// Here is my solution:
+#define FRUITS( fruit ) fruit ( apple ), fruit ( orange ), fruit ( banana ),
+#define FRUITS_ENUM_NAMES( name ) fruit_##name
+#define FRUITS_NAME_STRINGS( name ) #name
 
-#define FRUITS( fruit ) fruit ( Apple ) fruit ( Orange ) fruit ( Banana )
-
-#define CREATE_ENUM( name ) F_##name,
-
-#define CREATE_STRINGS( name ) #name,
-
-/*
-
-    // The trick is that 'fruit' is an argument of the macro 'FRUITS' and will be replaced by what ever you pass to. For example:
-
-    FRUITS ( CREATE_ENUM )
-
-    // will expand to this: F_Apple, F_Orange, F_Banana,
-
-    // Lets create the enum and the string array:
-
-    enum fruit { FRUITS ( CREATE_ENUM ) };
-
-    const char * fruit_names[] = { FRUITS ( CREATE_STRINGS ) };
-
-*/
+enum fruit { FRUITS ( FRUITS_ENUM_NAMES ) };
+static inline constexpr atom fruit_names[] = { FRUITS ( FRUITS_NAME_STRINGS ) };
