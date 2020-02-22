@@ -225,16 +225,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\const_expr_string\const_expr_string_cpp11.hpp" />
-    <ClInclude Include="include\const_expr_string\const_expr_string_cpp14.hpp" />
-    <ClInclude Include="include\const_expr_string\const_expr_string_helper_defs.hpp" />
-    <ClInclude Include="include\const_expr_string\const_expr_string_universal.hpp" />
-    <ClInclude Include="include\detail\const_expr_string.hpp" />
     <ClInclude Include="include\detail\includes.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="include\const_expr_string\LICENSE" />
-    <None Include="include\const_expr_string\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

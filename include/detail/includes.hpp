@@ -150,12 +150,8 @@ inline void from_json ( json const & j_, place_t & p_ ) {
 
 //--------------------------------------------------------------------------------------------------------------------------------//
 
-#include "const_expr_string.hpp"
-
-using atom = erichkeane::const_expr_string<char>;
-
 #define ATOMIZE( x_ )                                                                                                              \
-    atom { #x_ }
+    sax::atom_type { #x_ }
 
 //--------------------------------------------------------------------------------------------------------------------------------//
 
@@ -247,8 +243,8 @@ using atom = erichkeane::const_expr_string<char>;
 //--------------------------------------------------------------------------------------------------------------------------------//
 
 #define FRUITS( fruit ) fruit ( apple ), fruit ( orange ), fruit ( banana ),
-#define FRUITS_ENUM_NAMES( name ) fruit_##name
+#define FRUITS_ENUM_NAMES( name ) fruit_##name // fruit_apple,...
 #define FRUITS_NAME_STRINGS( name ) #name
 
 enum fruit { FRUITS ( FRUITS_ENUM_NAMES ) };
-static inline constexpr atom fruit_names[] = { FRUITS ( FRUITS_NAME_STRINGS ) };
+static inline constexpr sax::atom_type fruit_names[] = { FRUITS ( FRUITS_NAME_STRINGS ) };

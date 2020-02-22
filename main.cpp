@@ -28,7 +28,7 @@ void link_command ( ) {}
 void lib_command ( ) {}
 
 struct command {
-    atom name;
+    sax::atom_type name;
     void ( *function ) ( void );
 };
 
@@ -42,18 +42,18 @@ struct command commands[] = { COMMAND ( compile ), COMMAND ( link ), COMMAND ( l
 #define PROPERTY( property_name, ... )                                                                                             \
                                                                                                                                    \
     struct property_##property_name {                                                                                              \
-        static constexpr atom name                                      = QUOTE_PARAM ( property_name );                           \
-        static constexpr std::array<atom, NARGS ( __VA_ARGS__ )> option = { QUOTE_PARAMS ( __VA_ARGS__ ) };                        \
-        int value                                                       = 0;                                                       \
-        [[nodiscard]] atom get ( ) noexcept { return option[ value ]; }                                                            \
+        static constexpr sax::atom_type name                                      = QUOTE_PARAM ( property_name );                 \
+        static constexpr std::array<sax::atom_type, NARGS ( __VA_ARGS__ )> option = { QUOTE_PARAMS ( __VA_ARGS__ ) };              \
+        int value                                                                 = 0;                                             \
+        [[nodiscard]] sax::atom_type get ( ) noexcept { return option[ value ]; }                                                  \
     };
 
 /*
-    template<atom Name, typename... Args>
+    template<sax::atom_type Name, typename... Args>
 
     struct property_property_name {
-        static constexpr atom name                                   = Name;
-        static constexpr std::array<atom, sizeof ( Args )...> option = { Args... };
+        static constexpr sax::atom_type name                                   = Name;
+        static constexpr std::array<sax::atom_type, sizeof ( Args )...> option = { Args... };
         int value                                                    = 0;
         [[nodiscard]] std::string_view get ( ) noexcept { return option[ value ]; }
     };
@@ -96,17 +96,17 @@ PROPERTY ( warnings, w3, w0, w1, w2, w3, w4 )
 
 int main ( ) {
 
-    sax::disjoint_set<int, 10> s;
+    sax::disjoint_set<10, 3> s;
 
-    s.unite ( 1, 3 );
-    s.unite ( 2, 5 );
-    s.unite ( 6, 9 );
+    s.unite ( 1, 3, ATOMIZE ( drinkers ) );
     s.unite ( 0, 1 );
+    s.unite ( 2, 5, ATOMIZE ( stoners ) );
     s.unite ( 2, 8 );
+    std::cout << s.unite_name ( 6, 9, ATOMIZE ( tea_totalers ) ) << '\n';
     s.unite ( 4, 9 );
 
     for ( int i = 0; i < 10; ++i )
-        std::cout << s.find ( i ) << '\n';
+        std::cout << s.find_name ( i ) << '\n';
     std::cout << '\n';
 
     exit ( 0 );
