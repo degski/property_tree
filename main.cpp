@@ -94,6 +94,46 @@ PROPERTY ( warnings, w3, w0, w1, w2, w3, w4 )
     G4 = {h}
 */
 
+#define USE_MIMALLOC_LTO 1
+
+#include <pector/malloc_allocator.h>
+#include <pector/mimalloc_allocator.h>
+#include <pector/pector.h>
+
+#include <memory>
+#include <type_traits> // true_type
+
+template<class T>
+struct xmi_stl_allocator : public std::allocator_traits<xmi_stl_allocator<T>> {
+
+    using value_type = typename std::allocator_traits<xmi_stl_allocator<T>>::value_type;
+
+    using propagate_on_container_copy_assignment = std::true_type;
+    using propagate_on_container_move_assignment = std::true_type;
+    using propagate_on_container_swap            = std::true_type;
+    using is_always_equal                        = std::true_type;
+
+    xmi_stl_allocator ( ) mi_attr_noexcept {}
+    xmi_stl_allocator ( const xmi_stl_allocator & ) mi_attr_noexcept {}
+    template<class U>
+    xmi_stl_allocator ( const xmi_stl_allocator<U> & ) mi_attr_noexcept {}
+
+    void deallocate ( T * p, size_t /* count */ ) { mi_free ( p ); }
+    T * allocate ( size_t count ) { return ( T * ) mi_new_n ( count, sizeof ( T ) ); }
+};
+
+template<class T1, class T2>
+bool operator== ( const xmi_stl_allocator<T1> &, const xmi_stl_allocator<T2> & ) mi_attr_noexcept {
+    return true;
+}
+template<class T1, class T2>
+bool operator!= ( const xmi_stl_allocator<T1> &, const xmi_stl_allocator<T2> & ) mi_attr_noexcept {
+    return false;
+}
+
+template<typename T, typename S>
+using mi_vector = pt::pector<T, xmi_stl_allocator<T>, S, pt::default_recommended_size, false>;
+
 template<typename ValueType, typename SizeType>
 struct spaghetti_stack {
 
@@ -102,17 +142,24 @@ struct spaghetti_stack {
     using difference_type = size_type;
 
     private:
-    struct node_type {
+    struct spaghetti_type {
         using value_type = ValueType;
         size_type prev   = 0;
         value_type value = { };
     };
 
-    struct tail_type {
+    struct segment_type {
         size_type prev_tail = 0, tail = 0;
     };
 
-    using spaghetti = std::vector<node_type>;
+    struct list_type {
+        size_type index = -1;
+        segment_type block;
+    };
+
+    using spaghetti = mi_vector<spaghetti_type, size_type>;
+    using segment   = mi_vector<segment_type, size_type>;
+    using list      = mi_vector<list_type, size_type>;
 
     public:
     using iterator               = typename spaghetti::iterator;
@@ -120,11 +167,6 @@ struct spaghetti_stack {
     using reverse_iterator       = typename spaghetti::reverse_iterator;
     using const_reverse_iterator = typename spaghetti::const_reverse_iterator;
 
-    private:
-    using tails          = std::vector<tail_type>;
-    using tails_freelist = std::vector<size_type>;
-
-    public:
     using pointer         = value_type *;
     using const_pointer   = value_type const *;
     using reference       = value_type &;
@@ -137,20 +179,21 @@ struct spaghetti_stack {
     template<typename... Args>
     [[maybe_unused]] reference emplace ( size_type i_, Args &&... args_ ) {
         validate_tail ( i_ );
-        stack.emplace_back ( { std::exchange ( tail[ i_ ].tail, tail_index ( ) ), std::forward<Args> ( args_ )... } );
+        stack.emplace_back ( { std::exchange ( frame[ i_ ].tail, tail_index ( ) ), std::forward<Args> ( args_ )... } );
     }
     [[maybe_unused]] reference push ( size_type i_, const_reference v_ ) { return emplace ( i_, value_type{ v_ } ); }
 
     // Returns a pair, a reference to the stacked value and the index of the 'new' stack.
     template<typename... Args>
     [[maybe_unused]] sax::pair<reference, size_type> emplace_stack ( Args &&... args_ ) {
-        if ( unused.empty ( ) ) {
-            size_type i = tail.size ( );
-            return { stack.emplace_back ( { tail.emplace_back ( i - 1, i ), std::forward<Args> ( args_ )... } ), i };
+        if ( free.empty ( ) ) {
+            size_type i = frame.size ( );
+            return { stack.emplace_back ( { frame.emplace_back ( i - 1, i ), std::forward<Args> ( args_ )... } ), i };
         }
         else {
-            size_type i = pop_freelist ( );
-            return { stack.emplace_back ( { tail.emplace ( tail.begin ( ) + i, i - 1, i ), std::forward<Args> ( args_ )... } ), i };
+            size_type i = pop_free ( ).index;
+            return { stack.emplace_back ( { frame.emplace ( frame.begin ( ) + i, i - 1, i ), std::forward<Args> ( args_ )... } ),
+                     i };
         }
     }
     [[maybe_unused]] sax::pair<reference, size_type> push_stack ( const_reference v_ ) {
@@ -158,42 +201,36 @@ struct spaghetti_stack {
     }
 
     void remove_stack ( size_type i_ ) {
-        tail_type & t        = tail[ i_ ];
-        stack[ t.tail ].prev = unused.push_back ( i_ );
+        segment_type & f     = frame[ i_ ];
+        stack[ f.tail ].prev = free.push_back ( i_ );
     }
 
     [[nodiscard]] size_type find_child ( size_type ) const noexcept {}
 
     [[maybe_unused]] value_type pop ( size_type i_ ) noexcept {
         assert ( tail_index ( ) );
-        tail_type & t = tail[ i_ ];
-        if ( size_type{ 1 } == ( t.tail - t.prev_tail ) ) {
-            stack[ t.prev_tail ] = t.tail;
-            unused.push_back ( i_ );
-            return stack[ t.tail ].value;
+        if ( segment_type & f = frame[ i_ ]; size_type{ 1 } == ( f.tail - f.prev_tail ) ) {
+            stack[ f.tail + 1 ].prev = f.prev_tail;
+            free.push_back ( i_, f );
+            return stack[ f.tail ].value;
         }
         else {
-            /*
-            tail[ i_ ]
-                .tail
-
-                    stack[ stack[ tail[ i_ ].tail ].prev_node ]
-                .prev_node =*/
+            return stack[ f.tail-- ].value;
         }
     }
 
     [[maybe_unused]] value_type pop ( ) noexcept {
         assert ( tail_index ( ) );
         pop_back_after_exit pop_back ( stack );
-        tail[ 0 ] = stack.back ( ).prev;
+        frame[ 0 ] = stack.back ( ).prev;
         return stack.back ( ).value;
     }
 
     // Returns the number of spaghetti-stacks.
-    [[nodiscard]] size_type size ( ) const noexcept { return static_cast<size_type> ( tail.size ( ) ); }
+    [[nodiscard]] size_type size ( ) const noexcept { return static_cast<size_type> ( frame.size ( ) ); }
     [[nodiscard]] size_type tail_index ( ) const noexcept { return static_cast<size_type> ( stack.size ( ) ); }
 
-    [[nodiscard]] bool validate_tail ( size_type i_ ) const noexcept { assert ( 0 <= i_ and i_ < tail.size ( ) ); }
+    [[nodiscard]] bool validate_tail ( size_type i_ ) const noexcept { assert ( 0 <= i_ and i_ < frame.size ( ) ); }
 
     template<typename VectorLike>
     struct pop_back_after_exit final {
@@ -202,15 +239,15 @@ struct spaghetti_stack {
         VectorLike & object;
     };
 
-    [[nodiscard]] size_type pop_freelist ( ) noexcept {
-        assert ( unused.size ( ) );
-        pop_back_after_exit pop_back ( unused );
-        return unused.back ( );
+    [[nodiscard]] size_type pop_free ( ) noexcept {
+        assert ( free.size ( ) );
+        pop_back_after_exit pop_back ( free );
+        return free.back ( ).index;
     }
 
     spaghetti stack;
-    tails tail = [] { return tails{ }; }( );
-    tails_freelist unused;
+    segment frame = [] { return segment{ }; }( );
+    list free;
 };
 
 int main ( ) {
@@ -288,7 +325,7 @@ deeply, calling each other, and then one returns, leaving the other
 one far into the stack.
 
 
-I haven't been able to find an early use of the terms "cactus stack"
+I haven'f been able to find an early use of the terms "cactus stack"
 and "spaghetti stack" in a quick search of the literature. My
 intuition is that (B) is a "cactus stack", because it has linear
 pieces of stack connected at their bases, while (C) is a "spaghetti
