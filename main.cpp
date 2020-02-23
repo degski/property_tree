@@ -183,9 +183,10 @@ struct spaghetti_stack {
     }
     [[maybe_unused]] reference push ( size_type i_, const_reference v_ ) { return emplace ( i_, value_type{ v_ } ); }
 
-    // Returns a pair, a reference to the stacked value and the index of the 'new' stack.
+    // Create new segment with the object created in-place at it's root. Returns a pair,
+    // a reference to the stacked value and the index of the 'new' stack.
     template<typename... Args>
-    [[maybe_unused]] sax::pair<reference, size_type> emplace_stack ( Args &&... args_ ) {
+    [[maybe_unused]] sax::pair<reference, size_type> notch_emplace ( Args &&... args_ ) {
         if ( free.empty ( ) ) {
             size_type i = frame.size ( );
             return { stack.emplace_back ( { frame.emplace_back ( i - 1, i ), std::forward<Args> ( args_ )... } ), i };
@@ -196,8 +197,8 @@ struct spaghetti_stack {
                      i };
         }
     }
-    [[maybe_unused]] sax::pair<reference, size_type> push_stack ( const_reference v_ ) {
-        return emplace_stack ( value_type{ v_ } );
+    [[maybe_unused]] sax::pair<reference, size_type> notch_push ( const_reference v_ ) {
+        return notch_emplace ( value_type{ v_ } );
     }
 
     void remove_stack ( size_type i_ ) {
