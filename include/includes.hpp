@@ -46,13 +46,16 @@
 
 #include <sax/iostream.hpp>
 
-#include <boost/preprocessor/iteration/local.hpp>
+#include "detail/preprocessor.hpp"
 
+#include <sax/disjoint_set.hpp>
+#include <sax/stl.hpp>
 #include <sax/utf8conv.hpp>
 
 #include <plf/plf_nanotimer.h>
 
-#include "detail/const_expr_string.hpp"
+#include "detail/catch.hpp"
+#include "detail/hedley.hpp"
 
 // Disk-files and JSON -----------------------------------------------------------------------------------------------------------//
 

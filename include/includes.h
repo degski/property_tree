@@ -31,20 +31,28 @@
 #include <array>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
+#include <initializer_list>
+#include <optional>
+#include <random>
 #include <string>
+#include <string_view>
+#include <tuple>
 #include <type_traits>
+#include <vector>
 
 #define FMT_USE_GRISU 1
 #include <fmt/core.h>
 #include <fmt/format.h>
 
+#include <sax/iostream.hpp>
+
 #include <boost/preprocessor/iteration/local.hpp>
 
-#include <sax/disjoint_set.hpp>
 #include <sax/utf8conv.hpp>
 
 #include <plf/plf_nanotimer.h>
+
+#include "detail/const_expr_string.hpp"
 
 // Disk-files and JSON -----------------------------------------------------------------------------------------------------------//
 
@@ -90,8 +98,8 @@ namespace detail {
 
 [[nodiscard]] fs::path data_path_impl ( std::string const & relative_path_ ) noexcept {
     wchar_t * value;
-    std::size_t _;
-    _wdupenv_s ( &value, &_, L"USERPROFILE" );
+    std::size_t len;
+    _wdupenv_s ( &value, &len, L"USERPROFILE" );
     fs::path return_value ( std::wstring ( value ) +
                             std::wstring ( L"\\AppData\\Roaming\\" + sax::utf8_to_utf16 ( relative_path_ ) ) );
     fs::create_directory ( return_value ); // no error raised, if directory exists.
@@ -150,13 +158,12 @@ inline void from_json ( json const & j_, place_t & p_ ) {
 
 //--------------------------------------------------------------------------------------------------------------------------------//
 
-#define ATOMIZE( x_ )                                                                                                              \
-    sax::atom_type { #x_ }
+using atom = char const *;
 
-//--------------------------------------------------------------------------------------------------------------------------------//
+#define ATOMIZE( x ) ( atom ) #x
 
 // add quotes.
-#define QUOTE_PARAM( x_ ) ATOMIZE ( x_ )
+#define QUOTE_PARAM( x ) ATOMIZE ( x )
 // trick to get the number of arguments passed to a macro.
 #define NARGS_( _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24,     \
                 _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _51, _52, _53, _54, _55, _56, _57, \
@@ -168,83 +175,100 @@ inline void from_json ( json const & j_, place_t & p_ ) {
 // makes easier to expand the expressions.
 #define EXPAND( ... ) __VA_ARGS__
 // clang-format off
-#define CONCAT_IMPL( x_, y_ ) EXPAND ( x_ ## y_ )
+#define CONCAT_IMPL( x, y ) EXPAND ( x ## y )
 // clang-format on
 // concatenate two tokens.
-#define CONCAT( x_, y_ ) CONCAT_IMPL ( x_, y_ )
+#define CONCAT( x, y ) CONCAT_IMPL ( x, y )
 // quote all.
-#define QUOTE1( x_ ) ATOMIZE ( x_ )
-#define QUOTE2( x_, ... ) ATOMIZE ( x_ ), QUOTE1 ( __VA_ARGS__ )
-#define QUOTE3( x_, ... ) ATOMIZE ( x_ ), QUOTE2 ( __VA_ARGS__ )
-#define QUOTE4( x_, ... ) ATOMIZE ( x_ ), QUOTE3 ( __VA_ARGS__ )
-#define QUOTE5( x_, ... ) ATOMIZE ( x_ ), QUOTE4 ( __VA_ARGS__ )
-#define QUOTE6( x_, ... ) ATOMIZE ( x_ ), QUOTE5 ( __VA_ARGS__ )
-#define QUOTE7( x_, ... ) ATOMIZE ( x_ ), QUOTE6 ( __VA_ARGS__ )
-#define QUOTE8( x_, ... ) ATOMIZE ( x_ ), QUOTE7 ( __VA_ARGS__ )
-#define QUOTE9( x_, ... ) ATOMIZE ( x_ ), QUOTE8 ( __VA_ARGS__ )
-#define QUOTE10( x_, ... ) ATOMIZE ( x_ ), QUOTE9 ( __VA_ARGS__ )
-#define QUOTE11( x_, ... ) ATOMIZE ( x_ ), QUOTE10 ( __VA_ARGS__ )
-#define QUOTE12( x_, ... ) ATOMIZE ( x_ ), QUOTE11 ( __VA_ARGS__ )
-#define QUOTE13( x_, ... ) ATOMIZE ( x_ ), QUOTE12 ( __VA_ARGS__ )
-#define QUOTE14( x_, ... ) ATOMIZE ( x_ ), QUOTE13 ( __VA_ARGS__ )
-#define QUOTE15( x_, ... ) ATOMIZE ( x_ ), QUOTE14 ( __VA_ARGS__ )
-#define QUOTE16( x_, ... ) ATOMIZE ( x_ ), QUOTE15 ( __VA_ARGS__ )
-#define QUOTE17( x_, ... ) ATOMIZE ( x_ ), QUOTE16 ( __VA_ARGS__ )
-#define QUOTE18( x_, ... ) ATOMIZE ( x_ ), QUOTE17 ( __VA_ARGS__ )
-#define QUOTE19( x_, ... ) ATOMIZE ( x_ ), QUOTE18 ( __VA_ARGS__ )
-#define QUOTE20( x_, ... ) ATOMIZE ( x_ ), QUOTE19 ( __VA_ARGS__ )
-#define QUOTE21( x_, ... ) ATOMIZE ( x_ ), QUOTE20 ( __VA_ARGS__ )
-#define QUOTE22( x_, ... ) ATOMIZE ( x_ ), QUOTE21 ( __VA_ARGS__ )
-#define QUOTE23( x_, ... ) ATOMIZE ( x_ ), QUOTE22 ( __VA_ARGS__ )
-#define QUOTE24( x_, ... ) ATOMIZE ( x_ ), QUOTE23 ( __VA_ARGS__ )
-#define QUOTE25( x_, ... ) ATOMIZE ( x_ ), QUOTE24 ( __VA_ARGS__ )
-#define QUOTE26( x_, ... ) ATOMIZE ( x_ ), QUOTE25 ( __VA_ARGS__ )
-#define QUOTE27( x_, ... ) ATOMIZE ( x_ ), QUOTE26 ( __VA_ARGS__ )
-#define QUOTE28( x_, ... ) ATOMIZE ( x_ ), QUOTE27 ( __VA_ARGS__ )
-#define QUOTE29( x_, ... ) ATOMIZE ( x_ ), QUOTE28 ( __VA_ARGS__ )
-#define QUOTE30( x_, ... ) ATOMIZE ( x_ ), QUOTE29 ( __VA_ARGS__ )
-#define QUOTE31( x_, ... ) ATOMIZE ( x_ ), QUOTE30 ( __VA_ARGS__ )
-#define QUOTE32( x_, ... ) ATOMIZE ( x_ ), QUOTE31 ( __VA_ARGS__ )
-#define QUOTE33( x_, ... ) ATOMIZE ( x_ ), QUOTE32 ( __VA_ARGS__ )
-#define QUOTE34( x_, ... ) ATOMIZE ( x_ ), QUOTE33 ( __VA_ARGS__ )
-#define QUOTE35( x_, ... ) ATOMIZE ( x_ ), QUOTE34 ( __VA_ARGS__ )
-#define QUOTE36( x_, ... ) ATOMIZE ( x_ ), QUOTE35 ( __VA_ARGS__ )
-#define QUOTE37( x_, ... ) ATOMIZE ( x_ ), QUOTE36 ( __VA_ARGS__ )
-#define QUOTE38( x_, ... ) ATOMIZE ( x_ ), QUOTE37 ( __VA_ARGS__ )
-#define QUOTE39( x_, ... ) ATOMIZE ( x_ ), QUOTE38 ( __VA_ARGS__ )
-#define QUOTE40( x_, ... ) ATOMIZE ( x_ ), QUOTE39 ( __VA_ARGS__ )
-#define QUOTE41( x_, ... ) ATOMIZE ( x_ ), QUOTE40 ( __VA_ARGS__ )
-#define QUOTE42( x_, ... ) ATOMIZE ( x_ ), QUOTE41 ( __VA_ARGS__ )
-#define QUOTE43( x_, ... ) ATOMIZE ( x_ ), QUOTE42 ( __VA_ARGS__ )
-#define QUOTE44( x_, ... ) ATOMIZE ( x_ ), QUOTE43 ( __VA_ARGS__ )
-#define QUOTE45( x_, ... ) ATOMIZE ( x_ ), QUOTE44 ( __VA_ARGS__ )
-#define QUOTE46( x_, ... ) ATOMIZE ( x_ ), QUOTE45 ( __VA_ARGS__ )
-#define QUOTE47( x_, ... ) ATOMIZE ( x_ ), QUOTE46 ( __VA_ARGS__ )
-#define QUOTE48( x_, ... ) ATOMIZE ( x_ ), QUOTE47 ( __VA_ARGS__ )
-#define QUOTE49( x_, ... ) ATOMIZE ( x_ ), QUOTE48 ( __VA_ARGS__ )
-#define QUOTE50( x_, ... ) ATOMIZE ( x_ ), QUOTE49 ( __VA_ARGS__ )
-#define QUOTE51( x_, ... ) ATOMIZE ( x_ ), QUOTE50 ( __VA_ARGS__ )
-#define QUOTE52( x_, ... ) ATOMIZE ( x_ ), QUOTE51 ( __VA_ARGS__ )
-#define QUOTE53( x_, ... ) ATOMIZE ( x_ ), QUOTE52 ( __VA_ARGS__ )
-#define QUOTE54( x_, ... ) ATOMIZE ( x_ ), QUOTE53 ( __VA_ARGS__ )
-#define QUOTE55( x_, ... ) ATOMIZE ( x_ ), QUOTE54 ( __VA_ARGS__ )
-#define QUOTE56( x_, ... ) ATOMIZE ( x_ ), QUOTE55 ( __VA_ARGS__ )
-#define QUOTE57( x_, ... ) ATOMIZE ( x_ ), QUOTE56 ( __VA_ARGS__ )
-#define QUOTE58( x_, ... ) ATOMIZE ( x_ ), QUOTE57 ( __VA_ARGS__ )
-#define QUOTE59( x_, ... ) ATOMIZE ( x_ ), QUOTE58 ( __VA_ARGS__ )
-#define QUOTE60( x_, ... ) ATOMIZE ( x_ ), QUOTE59 ( __VA_ARGS__ )
-#define QUOTE61( x_, ... ) ATOMIZE ( x_ ), QUOTE60 ( __VA_ARGS__ )
-#define QUOTE62( x_, ... ) ATOMIZE ( x_ ), QUOTE61 ( __VA_ARGS__ )
-#define QUOTE63( x_, ... ) ATOMIZE ( x_ ), QUOTE62 ( __VA_ARGS__ )
-#define QUOTE64( x_, ... ) ATOMIZE ( x_ ), QUOTE63 ( __VA_ARGS__ )
+#define QUOTE1( x ) ATOMIZE ( x )
+#define QUOTE2( x, ... ) ATOMIZE ( x ), QUOTE1 ( __VA_ARGS__ )
+#define QUOTE3( x, ... ) ATOMIZE ( x ), QUOTE2 ( __VA_ARGS__ )
+#define QUOTE4( x, ... ) ATOMIZE ( x ), QUOTE3 ( __VA_ARGS__ )
+#define QUOTE5( x, ... ) ATOMIZE ( x ), QUOTE4 ( __VA_ARGS__ )
+#define QUOTE6( x, ... ) ATOMIZE ( x ), QUOTE5 ( __VA_ARGS__ )
+#define QUOTE7( x, ... ) ATOMIZE ( x ), QUOTE6 ( __VA_ARGS__ )
+#define QUOTE8( x, ... ) ATOMIZE ( x ), QUOTE7 ( __VA_ARGS__ )
+#define QUOTE9( x, ... ) ATOMIZE ( x ), QUOTE8 ( __VA_ARGS__ )
+#define QUOTE10( x, ... ) ATOMIZE ( x ), QUOTE9 ( __VA_ARGS__ )
+#define QUOTE11( x, ... ) ATOMIZE ( x ), QUOTE10 ( __VA_ARGS__ )
+#define QUOTE12( x, ... ) ATOMIZE ( x ), QUOTE11 ( __VA_ARGS__ )
+#define QUOTE13( x, ... ) ATOMIZE ( x ), QUOTE12 ( __VA_ARGS__ )
+#define QUOTE14( x, ... ) ATOMIZE ( x ), QUOTE13 ( __VA_ARGS__ )
+#define QUOTE15( x, ... ) ATOMIZE ( x ), QUOTE14 ( __VA_ARGS__ )
+#define QUOTE16( x, ... ) ATOMIZE ( x ), QUOTE15 ( __VA_ARGS__ )
+#define QUOTE17( x, ... ) ATOMIZE ( x ), QUOTE16 ( __VA_ARGS__ )
+#define QUOTE18( x, ... ) ATOMIZE ( x ), QUOTE17 ( __VA_ARGS__ )
+#define QUOTE19( x, ... ) ATOMIZE ( x ), QUOTE18 ( __VA_ARGS__ )
+#define QUOTE20( x, ... ) ATOMIZE ( x ), QUOTE19 ( __VA_ARGS__ )
+#define QUOTE21( x, ... ) ATOMIZE ( x ), QUOTE20 ( __VA_ARGS__ )
+#define QUOTE22( x, ... ) ATOMIZE ( x ), QUOTE21 ( __VA_ARGS__ )
+#define QUOTE23( x, ... ) ATOMIZE ( x ), QUOTE22 ( __VA_ARGS__ )
+#define QUOTE24( x, ... ) ATOMIZE ( x ), QUOTE23 ( __VA_ARGS__ )
+#define QUOTE25( x, ... ) ATOMIZE ( x ), QUOTE24 ( __VA_ARGS__ )
+#define QUOTE26( x, ... ) ATOMIZE ( x ), QUOTE25 ( __VA_ARGS__ )
+#define QUOTE27( x, ... ) ATOMIZE ( x ), QUOTE26 ( __VA_ARGS__ )
+#define QUOTE28( x, ... ) ATOMIZE ( x ), QUOTE27 ( __VA_ARGS__ )
+#define QUOTE29( x, ... ) ATOMIZE ( x ), QUOTE28 ( __VA_ARGS__ )
+#define QUOTE30( x, ... ) ATOMIZE ( x ), QUOTE29 ( __VA_ARGS__ )
+#define QUOTE31( x, ... ) ATOMIZE ( x ), QUOTE30 ( __VA_ARGS__ )
+#define QUOTE32( x, ... ) ATOMIZE ( x ), QUOTE31 ( __VA_ARGS__ )
+#define QUOTE33( x, ... ) ATOMIZE ( x ), QUOTE32 ( __VA_ARGS__ )
+#define QUOTE34( x, ... ) ATOMIZE ( x ), QUOTE33 ( __VA_ARGS__ )
+#define QUOTE35( x, ... ) ATOMIZE ( x ), QUOTE34 ( __VA_ARGS__ )
+#define QUOTE36( x, ... ) ATOMIZE ( x ), QUOTE35 ( __VA_ARGS__ )
+#define QUOTE37( x, ... ) ATOMIZE ( x ), QUOTE36 ( __VA_ARGS__ )
+#define QUOTE38( x, ... ) ATOMIZE ( x ), QUOTE37 ( __VA_ARGS__ )
+#define QUOTE39( x, ... ) ATOMIZE ( x ), QUOTE38 ( __VA_ARGS__ )
+#define QUOTE40( x, ... ) ATOMIZE ( x ), QUOTE39 ( __VA_ARGS__ )
+#define QUOTE41( x, ... ) ATOMIZE ( x ), QUOTE40 ( __VA_ARGS__ )
+#define QUOTE42( x, ... ) ATOMIZE ( x ), QUOTE41 ( __VA_ARGS__ )
+#define QUOTE43( x, ... ) ATOMIZE ( x ), QUOTE42 ( __VA_ARGS__ )
+#define QUOTE44( x, ... ) ATOMIZE ( x ), QUOTE43 ( __VA_ARGS__ )
+#define QUOTE45( x, ... ) ATOMIZE ( x ), QUOTE44 ( __VA_ARGS__ )
+#define QUOTE46( x, ... ) ATOMIZE ( x ), QUOTE45 ( __VA_ARGS__ )
+#define QUOTE47( x, ... ) ATOMIZE ( x ), QUOTE46 ( __VA_ARGS__ )
+#define QUOTE48( x, ... ) ATOMIZE ( x ), QUOTE47 ( __VA_ARGS__ )
+#define QUOTE49( x, ... ) ATOMIZE ( x ), QUOTE48 ( __VA_ARGS__ )
+#define QUOTE50( x, ... ) ATOMIZE ( x ), QUOTE49 ( __VA_ARGS__ )
+#define QUOTE51( x, ... ) ATOMIZE ( x ), QUOTE50 ( __VA_ARGS__ )
+#define QUOTE52( x, ... ) ATOMIZE ( x ), QUOTE51 ( __VA_ARGS__ )
+#define QUOTE53( x, ... ) ATOMIZE ( x ), QUOTE52 ( __VA_ARGS__ )
+#define QUOTE54( x, ... ) ATOMIZE ( x ), QUOTE53 ( __VA_ARGS__ )
+#define QUOTE55( x, ... ) ATOMIZE ( x ), QUOTE54 ( __VA_ARGS__ )
+#define QUOTE56( x, ... ) ATOMIZE ( x ), QUOTE55 ( __VA_ARGS__ )
+#define QUOTE57( x, ... ) ATOMIZE ( x ), QUOTE56 ( __VA_ARGS__ )
+#define QUOTE58( x, ... ) ATOMIZE ( x ), QUOTE57 ( __VA_ARGS__ )
+#define QUOTE59( x, ... ) ATOMIZE ( x ), QUOTE58 ( __VA_ARGS__ )
+#define QUOTE60( x, ... ) ATOMIZE ( x ), QUOTE59 ( __VA_ARGS__ )
+#define QUOTE61( x, ... ) ATOMIZE ( x ), QUOTE60 ( __VA_ARGS__ )
+#define QUOTE62( x, ... ) ATOMIZE ( x ), QUOTE61 ( __VA_ARGS__ )
+#define QUOTE63( x, ... ) ATOMIZE ( x ), QUOTE62 ( __VA_ARGS__ )
+#define QUOTE64( x, ... ) ATOMIZE ( x ), QUOTE63 ( __VA_ARGS__ )
 
 #define QUOTE_PARAMS( ... ) EXPAND ( CONCAT ( QUOTE, NARGS ( __VA_ARGS__ ) ) ) ( __VA_ARGS__ )
 
 //--------------------------------------------------------------------------------------------------------------------------------//
 
-#define FRUITS( fruit ) fruit ( apple ), fruit ( orange ), fruit ( banana ),
-#define FRUITS_ENUM_NAMES( name ) fruit_##name // fruit_apple,...
-#define FRUITS_NAME_STRINGS( name ) #name
+// Here is my solution:
 
-enum fruit { FRUITS ( FRUITS_ENUM_NAMES ) };
-static inline constexpr sax::atom_type fruit_names[] = { FRUITS ( FRUITS_NAME_STRINGS ) };
+#define FRUITS( fruit ) fruit ( Apple ) fruit ( Orange ) fruit ( Banana )
+
+#define CREATE_ENUM( name ) F_##name,
+
+#define CREATE_STRINGS( name ) #name,
+
+/*
+
+    // The trick is that 'fruit' is an argument of the macro 'FRUITS' and will be replaced by what ever you pass to. For example:
+
+    FRUITS ( CREATE_ENUM )
+
+    // will expand to this: F_Apple, F_Orange, F_Banana,
+
+    // Lets create the enum and the string array:
+
+    enum fruit { FRUITS ( CREATE_ENUM ) };
+
+    const char * fruit_names[] = { FRUITS ( CREATE_STRINGS ) };
+
+*/

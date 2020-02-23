@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "detail/includes.hpp"
+#include "includes.hpp"
 
 void compile_command ( ) {}
 void link_command ( ) {}
@@ -94,6 +94,125 @@ PROPERTY ( warnings, w3, w0, w1, w2, w3, w4 )
     G4 = {h}
 */
 
+template<typename ValueType, typename SizeType>
+struct spaghetti_stack {
+
+    using value_type      = ValueType;
+    using size_type       = SizeType;
+    using difference_type = size_type;
+
+    private:
+    struct node_type {
+        using value_type = ValueType;
+        size_type prev   = 0;
+        value_type value = { };
+    };
+
+    struct tail_type {
+        size_type prev_tail = 0, tail = 0;
+    };
+
+    using spaghetti = std::vector<node_type>;
+
+    public:
+    using iterator               = typename spaghetti::iterator;
+    using const_iterator         = typename spaghetti::const_iterator;
+    using reverse_iterator       = typename spaghetti::reverse_iterator;
+    using const_reverse_iterator = typename spaghetti::const_reverse_iterator;
+
+    private:
+    using tails          = std::vector<tail_type>;
+    using tails_freelist = std::vector<size_type>;
+
+    public:
+    using pointer         = value_type *;
+    using const_pointer   = value_type const *;
+    using reference       = value_type &;
+    using const_reference = value_type const &;
+    using rv_reference    = value_type &&;
+
+    // Emplace/Pop.
+
+    public:
+    template<typename... Args>
+    [[maybe_unused]] reference emplace ( size_type i_, Args &&... args_ ) {
+        validate_tail ( i_ );
+        stack.emplace_back ( { std::exchange ( tail[ i_ ].tail, tail_index ( ) ), std::forward<Args> ( args_ )... } );
+    }
+    [[maybe_unused]] reference push ( size_type i_, const_reference v_ ) { return emplace ( i_, value_type{ v_ } ); }
+
+    // Returns a pair, a reference to the stacked value and the index of the 'new' stack.
+    template<typename... Args>
+    [[maybe_unused]] sax::pair<reference, size_type> emplace_stack ( Args &&... args_ ) {
+        if ( unused.empty ( ) ) {
+            size_type i = tail.size ( );
+            return { stack.emplace_back ( { tail.emplace_back ( i - 1, i ), std::forward<Args> ( args_ )... } ), i };
+        }
+        else {
+            size_type i = pop_freelist ( );
+            return { stack.emplace_back ( { tail.emplace ( tail.begin ( ) + i, i - 1, i ), std::forward<Args> ( args_ )... } ), i };
+        }
+    }
+    [[maybe_unused]] sax::pair<reference, size_type> push_stack ( const_reference v_ ) {
+        return emplace_stack ( value_type{ v_ } );
+    }
+
+    void remove_stack ( size_type i_ ) {
+        tail_type & t        = tail[ i_ ];
+        stack[ t.tail ].prev = unused.push_back ( i_ );
+    }
+
+    [[nodiscard]] size_type find_child ( size_type ) const noexcept {}
+
+    [[maybe_unused]] value_type pop ( size_type i_ ) noexcept {
+        assert ( tail_index ( ) );
+        tail_type & t = tail[ i_ ];
+        if ( size_type{ 1 } == ( t.tail - t.prev_tail ) ) {
+            stack[ t.prev_tail ] = t.tail;
+            unused.push_back ( i_ );
+            return stack[ t.tail ].value;
+        }
+        else {
+            /*
+            tail[ i_ ]
+                .tail
+
+                    stack[ stack[ tail[ i_ ].tail ].prev_node ]
+                .prev_node =*/
+        }
+    }
+
+    [[maybe_unused]] value_type pop ( ) noexcept {
+        assert ( tail_index ( ) );
+        pop_back_after_exit pop_back ( stack );
+        tail[ 0 ] = stack.back ( ).prev;
+        return stack.back ( ).value;
+    }
+
+    // Returns the number of spaghetti-stacks.
+    [[nodiscard]] size_type size ( ) const noexcept { return static_cast<size_type> ( tail.size ( ) ); }
+    [[nodiscard]] size_type tail_index ( ) const noexcept { return static_cast<size_type> ( stack.size ( ) ); }
+
+    [[nodiscard]] bool validate_tail ( size_type i_ ) const noexcept { assert ( 0 <= i_ and i_ < tail.size ( ) ); }
+
+    template<typename VectorLike>
+    struct pop_back_after_exit final {
+        pop_back_after_exit ( VectorLike & ptr_ ) noexcept : object{ ptr_ } {}
+        ~pop_back_after_exit ( ) noexcept { object.pop_back ( ); }
+        VectorLike & object;
+    };
+
+    [[nodiscard]] size_type pop_freelist ( ) noexcept {
+        assert ( unused.size ( ) );
+        pop_back_after_exit pop_back ( unused );
+        return unused.back ( );
+    }
+
+    spaghetti stack;
+    tails tail = [] { return tails{ }; }( );
+    tails_freelist unused;
+};
+
 int main ( ) {
 
     sax::disjoint_set<10, 3> s;
@@ -119,3 +238,93 @@ int main ( ) {
 
     return EXIT_SUCCESS;
 }
+
+/*
+
+There are several ways of implementing such tree-like structures.
+
+
+(A) One is to allocate each activation record on the heap, and link it
+back to the logically surrounding activation record. This is the
+method used by most Simula 67 implementations, I believe. The
+original implementations of Lisp 1.5 used the heap for the name
+records (the a-list), but not for control activations. The advantage
+of this technique is that it is simple and uniform, and never runs out
+of memory for any particular thread unless there is no more memory
+left globally. It also is parsimonious of address space. On the
+other hand, activation record allocation and deallocation are more
+expensive than in stack-based approaches. It may also have poorer
+locality (cache) properties than the other approaches.
+
+
+(B) Another is to allocate a fixed-size stack whenever you spawn a new
+parallel thread. This has all the efficiency advantages of an
+ordinary stack, but means that each thread has its own allocation
+limit, which may run out long before global memory is exhausted. This
+is the method that is implicitly assumed in Ada, for instance, by the
+length clause for tasks. It is also the model imposed by library
+extensions to stack implementations (like C's pthreads), since each
+thread operates exactly as on a single linear stack. It will work
+well if the stack requirements of a thread can be predicted
+accurately, or if address space is cheap (as on many virtual memory
+architectures). It does impose, however, a minimal cost of one
+virtual memory page per stack. At the time the Bobrow and Wegbreit
+paper was written, both address space and memory were expensive. (I
+believe both were working on PDP-10's at the time, with an 18-bit word
+address; Bobrow, at BBN, presumably on Tenex, which had paging, but
+Wegbreit, at Harvard, on TOPS-10, which did not.)
+
+
+(C) Yet another technique combines the advantages of these two
+techniques by basically allocating activation records in a stack-like
+way, but also providing for links among records. It uses a stack-like
+piece of memory in a heap-like way. This is the technique described
+in the Bobrow and Wegbreit paper. This has the advantage of being
+relatively parsimonious of address space, and of being just about as
+efficient as a pure stack when multiple stacks are not in use. On the
+other hand, it can be wasteful of address space and of memory with
+certain patterns of use, e.g. when two co-routined threads recurse
+deeply, calling each other, and then one returns, leaving the other
+one far into the stack.
+
+
+I haven't been able to find an early use of the terms "cactus stack"
+and "spaghetti stack" in a quick search of the literature. My
+intuition is that (B) is a "cactus stack", because it has linear
+pieces of stack connected at their bases, while (C) is a "spaghetti
+stack" because the pieces of various stacks are intermixed. (A) is
+not a stack approach at all, but a heap approach.
+
+
+Bobrow and Wegbreit mention approach (A) as "fairly straightforward";
+and in fact it had been used in Simula for several years before their
+paper. They do not mention approach (B), probably because, although
+obvious, it was prohibitively inefficient in their computational
+environment. And they use neither the term "spaghetii" nor "cactus"
+in their CACM paper. However, later papers (e.g. Kearns82) do refer
+to their approach as "spaghetti stacks".
+
+
+Which approach is appropriate depends (as usual) on the context. In a
+context of large numbers of small, short-lived threads, the heap or
+the spaghetti approach are probably best. For large, long-lived
+threads, the dedicated stack ("cactus") approach (B) is probably best
+when virtual memory allows preallocation of large chunks of address
+space cheaply. I suspect that most implementations in production
+environments these days are cactus and not spaghetti or heap.
+Experimental or academic languages, on the other hand, generally use
+heaps. I am not aware of current use of spaghetti stacks, but I would
+be interested to hear of any.
+
+
+In summary, Bobrow and Wegbreit _should_ be credited with the concept
+but perhaps not the name "spaghetti stacks", but _not_ with the
+concept of "cactus stacks".
+
+
+
+Kearns82: John P. Kearns, Carol J. Meier, Mary Lou Soffa, _The
+Performance Evaluation of Control Implementations_, IEEE Trans. on
+Soft. Eng. SE-8:2:89 (March 1982).
+
+*/

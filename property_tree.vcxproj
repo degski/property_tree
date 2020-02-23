@@ -225,7 +225,10 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\detail\includes.hpp" />
+    <ClInclude Include="include\detail\catch.hpp" />
+    <ClInclude Include="include\detail\hedley.hpp" />
+    <ClInclude Include="include\detail\impl\hedley.h" />
+    <ClInclude Include="include\detail\preprocessor.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
