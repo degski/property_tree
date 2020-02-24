@@ -102,6 +102,7 @@ PROPERTY ( warnings, w3, w0, w1, w2, w3, w4 )
 
 #include <memory>
 #include <type_traits> // true_type
+#include <memory>
 
 template<class T>
 struct xmi_stl_allocator : public std::allocator_traits<xmi_stl_allocator<T>> {
